@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(coms_connector)
+project(coms_converter)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,8 +7,6 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(coms_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -23,41 +21,5 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-
-add_executable(plc_sender
-  src/plc_sender_node.cpp
-  src/plc_sender.cpp
-)
-ament_target_dependencies(plc_sender
-  rclcpp
-  coms_msgs
-)
-target_include_directories(plc_sender
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-
-add_executable(plc_receiver
-  src/plc_receiver_node.cpp
-  src/plc_receiver.cpp
-)
-ament_target_dependencies(plc_receiver
-  rclcpp
-  coms_msgs
-)
-
-target_include_directories(plc_receiver
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-
-install(TARGETS
-  plc_sender
-  plc_receiver
-  DESTINATION lib/${PROJECT_NAME}
-)
-
 
 ament_package()
