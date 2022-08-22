@@ -4,20 +4,23 @@
 // #include "ros/ros.h"
 #include <std_msgs/msg/float32.h>
 #include <std_msgs/msg/string.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <memory>
+#include <functional>
 
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
-#include <autoware_msg/msg/accel_cmd.hpp>
-#include <autoware_msg/msg/steer_cmd.hpp>
-#include <autoware_msg/msg/brake_cmd.hpp>
-#include <autoware_msg/msg/lamp_cmd.hpp>
-#include <autoware_msg/msg/indicator_cmd.hpp>
+#include <autoware_msgs/msg/accel_cmd.hpp>
+#include <autoware_msgs/msg/steer_cmd.hpp>
+#include <autoware_msgs/msg/brake_cmd.hpp>
+#include <autoware_msgs/msg/lamp_cmd.hpp>
+#include <autoware_msgs/msg/indicator_cmd.hpp>
 
-#include <tablet_socket_msgs/gear_cmd.h>
-#include <tablet_socket_msgs/mode_cmd.h>
+#include <tablet_socket_msgs/msg/gear_cmd.hpp>
+#include <tablet_socket_msgs/msg/mode_cmd.hpp>
 
 #pragma pack(1)
 #include <coms_msgs/msg/coms_control_packet.hpp>
@@ -71,47 +74,48 @@ private:
 
 
 
-class PlcConverter{
+class PlcConverter : public rclcpp::Node {
 public:
-    PlcConverter();
+    PlcConverter(std::string name);
     void run();
     void publishMsgs();
     
 private:
-    ros::Time time;
-    ros::Time previous_time;
-    ros::Time coms_sensor_packet_updated_time;
+    // time https://qiita.com/hakuturu583/items/4e559ff72c290b39e4e6
+    std::shared_ptr<rclcpp::Clock> ros_clock_;
+    rclcpp::Time time_;
+    rclcpp::Time previous_time_;
+    rclcpp::Time coms_sensor_packet_updated_time_;
 
-    //Node handles
-    ros::NodeHandle nh;
-    ros::NodeHandle private_nh;
+    rclcpp::TimerBase::SharedPtr timer_;
     
     //Flag
-    bool coms_direct_control_flag;
-    bool use_low_pass_filter;
-    bool use_median_filter;
-    int gear_num;	//add  
+    bool coms_direct_control_flag_;
+    bool use_low_pass_filter_;
+    bool use_median_filter_;
+    int gear_num_;	//add  
    
     //Subscribers and Publishers
     //Sensor packet -> twist, pose
-    ros::Subscriber coms_sensor_packet_sub;
-        
-    ros::Publisher odom_twist_pub;
-    ros::Publisher curr_pose_pub;
+    rclcpp::Subscription<coms_msgs::msg::ComsSensorPacket>::SharedPtr coms_sensor_packet_sub_;
+
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr odom_twist_pub_;        
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr curr_pose_pub_;        
     
     //Cmd -> control packet
-    ros::Subscriber twist_cmd_sub;
-    ros::Subscriber curr_twist_sub;
-    ros::Subscriber accel_cmd_sub;
-    ros::Subscriber steer_cmd_sub;
-    ros::Subscriber brake_cmd_sub;
-    ros::Subscriber lamp_cmd_sub;
-    ros::Subscriber indicator_cmd_sub;
-    ros::Subscriber gear_cmd_sub;
-    ros::Subscriber mode_cmd_sub;
-	ros::Subscriber lidar_vel_sub;//lidar_vel
-    ros::Publisher coms_control_packet_pub;
-    
+    rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_cmd_sub_;
+    rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr curr_twist_sub_;
+    rclcpp::Subscription<autoware_msgs::msg::AccelCmd>::SharedPtr accel_cmd_sub_;
+    rclcpp::Subscription<autoware_msgs::msg::SteerCmd>::SharedPtr steer_cmd_sub_;
+    rclcpp::Subscription<autoware_msgs::msg::BrakeCmd>::SharedPtr brake_cmd_sub_;
+    rclcpp::Subscription<autoware_msgs::msg::LampCmd>::SharedPtr lamp_cmd_sub_;
+    rclcpp::Subscription<autoware_msgs::msg::IndicatorCmd>::SharedPtr indicator_cmd_sub_;
+    rclcpp::Subscription<tablet_socket_msgs::msg::GearCmd>::SharedPtr gear_cmd_sub_;
+    rclcpp::Subscription<tablet_socket_msgs::msg::ModeCmd>::SharedPtr mode_cmd_sub_;
+
+    rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr lidar_vel_sub_; // lidar vel
+    rclcpp::Publisher<coms_msgs::msg::ComsControlPacket>::SharedPtr coms_control_packet_pub_;
+
     //Topic names
     std::string twist_cmd_topic;
     std::string curr_twist_topic;
@@ -125,14 +129,14 @@ private:
 	std::string lidar_vel_topic;//lidar_vel
 
     //Topic messages
-    coms_msgs::ComsSensorPacket coms_sensor_packet_msg;
-    coms_msgs::ComsSensorPacket coms_sensor_packet_msg_previous;
+    coms_msgs::msg::ComsSensorPacket coms_sensor_packet_msg_;
+    coms_msgs::msg::ComsSensorPacket previous_coms_sensor_packet_msg_;
     
-    geometry_msgs::TwistStamped curr_twist_msg;
-    geometry_msgs::TwistStamped odom_twist_msg;
-    geometry_msgs::PoseStamped curr_pose_msg;
+    geometry_msgs::msg::TwistStamped curr_twist_msg_;
+    geometry_msgs::msg::TwistStamped odom_twist_msg_;
+    geometry_msgs::msg::PoseStamped curr_pose_msg_;
 
-    coms_msgs::ComsControlPacket coms_control_packet_msg;
+    coms_msgs::msg::ComsControlPacket coms_control_packet_msg_;
 
 
     //Filters
@@ -163,17 +167,17 @@ private:
 
 
     //Callback functions
-    void comsSensorPacketCallback(const coms_msgs::ComsSensorPacket& msg);
-    void twistCmdCallback(const geometry_msgs::TwistStamped& msg);
-    void currTwistCallback(const geometry_msgs::TwistStamped& msg);
-    void accelCmdCallback(const autoware_msgs::AccelCmd& msg);
-    void steerCmdCallback(const autoware_msgs::SteerCmd& msg);
-    void brakeCmdCallback(const autoware_msgs::BrakeCmd& msg);
-    void lampCmdCallback(const autoware_msgs::LampCmd& msg);
-    void indicatorCmdCallback(const autoware_msgs::IndicatorCmd& msg);
-    void gearCmdCallback(const tablet_socket_msgs::gear_cmd& msg);
-    void modeCmdCallback(const tablet_socket_msgs::mode_cmd& msg);
-	void LidarVelCallback(const geometry_msgs::TwistStamped& msg);//lidar_vel
+    void comsSensorPacketCallback(const coms_msgs::msg::ComsSensorPacket& msg);
+    void twistCmdCallback(const geometry_msgs::msg::TwistStamped& msg);
+    void currTwistCallback(const geometry_msgs::msg::TwistStamped& msg);
+    void accelCmdCallback(const autoware_msgs::msg::AccelCmd& msg);
+    void steerCmdCallback(const autoware_msgs::msg::SteerCmd& msg);
+    void brakeCmdCallback(const autoware_msgs::msg::BrakeCmd& msg);
+    void lampCmdCallback(const autoware_msgs::msg::LampCmd& msg);
+    void indicatorCmdCallback(const autoware_msgs::msg::IndicatorCmd& msg);
+    void gearCmdCallback(const tablet_socket_msgs::msg::GearCmd& msg);
+    void modeCmdCallback(const tablet_socket_msgs::msg::ModeCmd& msg);
+	void LidarVelCallback(const geometry_msgs::msg::TwistStamped& msg);//lidar_vel
 };
 
 }

@@ -7,6 +7,12 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(autoware_msgs REQUIRED)
+find_package(coms_msgs REQUIRED)
+find_package(tablet_socket_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -21,5 +27,27 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+add_executable(plc_converter
+  src/plc_converter.cpp
+)
+ament_target_dependencies(plc_converter
+  rclcpp
+  std_msgs
+  geometry_msgs
+  autoware_msgs
+  coms_msgs
+  tablet_socket_msgs
+)
+target_include_directories(plc_converter
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+install(TARGETS
+  plc_converter
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()

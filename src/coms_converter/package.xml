@@ -9,6 +9,12 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>autoware_msgs</depend>
+  <depend>coms_msgs</depend>
+  <depend>tablet_socket_msgs</depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
