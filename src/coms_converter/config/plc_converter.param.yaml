@@ -1,0 +1,16 @@
+/**:
+  ros__parameters: 
+    direct_control_flag: false
+    use_low_pass_filter: true
+    use_median_filter: true
+    lowpass_filter_cutoff_frequency_wr: 50
+    lowpass_filter_cutoff_frequency_wl: 50
+    lowpass_filter_sampling_frequency_wr: 100
+    lowpass_filter_sampling_frequency_wl: 100
+    lowpass_filter_size_wr: 20
+    lowpass_filter_size_wl: 20
+    median_filter_size_wr: 5
+    median_filter_size_wl: 5
+    tire_radius: 1
+    tire_distance: 1
+    encoder_pulse_resolution: 1

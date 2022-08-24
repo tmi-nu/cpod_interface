@@ -1,0 +1,37 @@
+<launch>
+  <arg name="direct_control_flag" default="false" />
+  <arg name="use_low_pass_filter" default="true" />
+  <arg name="use_median_filter" default="true" />
+  <arg name="lowpass_filter_cutoff_frequency_wr" default="50" />
+  <arg name="lowpass_filter_cutoff_frequency_wl" default="50" />
+  <arg name="lowpass_filter_sampling_frequency_wr" default="100" />
+  <arg name="lowpass_filter_sampling_frequency_wl" default="100" />
+  <arg name="lowpass_filter_size_wr" default="20" />
+  <arg name="lowpass_filter_size_wl" default="20" />
+  <arg name="median_filter_size_wr" default="5" />
+  <arg name="median_filter_size_wl" default="5" />
+  <arg name="tire_radius" default="1" />
+  <arg name="tire_distance" default="1" />
+  <arg name="encoder_pulse_resolution" default="1" />
+
+
+  <node pkg="coms_converter" exec="plc_converter" name="plc_converter" output="screen">
+    <param name="direct_control_flag" value="$(var direct_control_flag)" />
+
+    <param name="use_lowpass_filter" value="$(var use_low_pass_filter)" />
+    <param name="use_median_filter" value="$(var use_median_filter)" />
+
+    <param name="lowpass_filter_cutoff_frequency_wr" value="$(var lowpass_filter_cutoff_frequency_wr)" />
+    <param name="lowpass_filter_cutoff_frequency_wl" value="$(var lowpass_filter_cutoff_frequency_wl)" />
+    <param name="lowpass_filter_sampling_frequency_wr" value="$(var lowpass_filter_sampling_frequency_wr)" />
+    <param name="lowpass_filter_sampling_frequency_wl" value="$(var lowpass_filter_sampling_frequency_wl)" />
+    <param name="lowpass_filter_size_wr" value="$(var lowpass_filter_size_wr)" />
+    <param name="lowpass_filter_size_wl" value="$(var lowpass_filter_size_wl)" />
+    <param name="median_filter_size_wr" value="$(var median_filter_size_wr)" />
+    <param name="median_filter_size_wl" value="$(var median_filter_size_wl)" />
+
+    <param name="tire_radius" value="$(var tire_radius)" />
+    <param name="tire_distance" value="$(var tire_distance)" />
+    <param name="encoder_pulse_resolution" value="$(var encoder_pulse_resolution)" />
+  </node>
+</launch>

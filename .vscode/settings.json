@@ -6,5 +6,10 @@
     ],
     "files.associations": {
         "functional": "cpp"
-    }
+    },
+    "python.analysis.extraPaths": [
+        "/home/autoware/cpod_interface/install/coms_msgs/lib/python3.8/site-packages",
+        "/home/autoware/cpod_interface/install/autoware_msg/lib/python3.8/site-packages",
+        "/opt/ros/galactic/lib/python3.8/site-packages"
+    ]
 }
