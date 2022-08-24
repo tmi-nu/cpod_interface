@@ -21,7 +21,6 @@ def launch_setup(context, *args, **kwargs):
     def load_composable_node_param(param_path):
         with open(LaunchConfiguration(param_path).perform(context), "r") as f:
             data =  yaml.safe_load(f)
-            print(data)
             return data['/**']['ros__parameters']    
         
     ns = ""

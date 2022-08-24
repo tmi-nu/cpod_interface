@@ -67,7 +67,8 @@ class PlcReceiver : public rclcpp::Node{
                     continue;
                 }
 
-                auto data_size = recv(receiver_->socket_var, (void *) (&coms_sensor_packet_msg_), sizeof(coms_sensor_packet_msg_), 0);
+                // auto data_size = recv(receiver_->socket_var, (void *) (&coms_sensor_packet_msg_), sizeof(coms_sensor_packet_msg_), 0);
+                recv(receiver_->socket_var, (void *) (&coms_sensor_packet_msg_), sizeof(coms_sensor_packet_msg_), 0);
                 //std::cout << data_size << std::endl;
             }
         }

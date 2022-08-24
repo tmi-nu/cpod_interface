@@ -240,76 +240,76 @@ void PlcConverter::computeEncoderSpeed( double encoderPulseResolution, double ti
 
     double dt = diff_time_sec;  
     if( dt > MAX_DIFF_TIME ){ 
-    previous_time_ = now;
-  
-    //Get pulse and calculate difference
-    double pulse_rr;
-    double pulse_rl;
-    double d_pulse_rr;
-    double d_pulse_rl;
+        previous_time_ = now;
+    
+        //Get pulse and calculate difference
+        double pulse_rr;
+        double pulse_rl;
+        double d_pulse_rr;
+        double d_pulse_rl;
 
-    pulse_rr = coms_sensor_packet_now.r_tire;
-    pulse_rl = coms_sensor_packet_now.l_tire;
-    d_pulse_rr = coms_sensor_packet_now.r_tire - previous_coms_sensor_packet_msg_.r_tire;
-    d_pulse_rl = coms_sensor_packet_now.l_tire - previous_coms_sensor_packet_msg_.l_tire;
+        pulse_rr = coms_sensor_packet_now.r_tire;
+        pulse_rl = coms_sensor_packet_now.l_tire;
+        d_pulse_rr = coms_sensor_packet_now.r_tire - previous_coms_sensor_packet_msg_.r_tire;
+        d_pulse_rl = coms_sensor_packet_now.l_tire - previous_coms_sensor_packet_msg_.l_tire;
 
-    if (d_pulse_rr < -THRESHOLD ){ d_pulse_rr += MAX_COUNT-MIN_COUNT; }
-    if (d_pulse_rr >  THRESHOLD ){ d_pulse_rr -= MAX_COUNT-MIN_COUNT; }
-    if (d_pulse_rl < -THRESHOLD ){ d_pulse_rl += MAX_COUNT-MIN_COUNT; }
-    if (d_pulse_rl >  THRESHOLD ){ d_pulse_rl -= MAX_COUNT-MIN_COUNT; }
+        if (d_pulse_rr < -THRESHOLD ){ d_pulse_rr += MAX_COUNT-MIN_COUNT; }
+        if (d_pulse_rr >  THRESHOLD ){ d_pulse_rr -= MAX_COUNT-MIN_COUNT; }
+        if (d_pulse_rl < -THRESHOLD ){ d_pulse_rl += MAX_COUNT-MIN_COUNT; }
+        if (d_pulse_rl >  THRESHOLD ){ d_pulse_rl -= MAX_COUNT-MIN_COUNT; }
 
-    //Compute wheel rotation speed
-    double wr = d_pulse_rr * 2*M_PI /(encoderPulseResolution*dt) ;
-    double wl = d_pulse_rl * 2*M_PI /(encoderPulseResolution*dt) ;
+        //Compute wheel rotation speed
+        double wr = d_pulse_rr * 2*M_PI /(encoderPulseResolution*dt) ;
+        double wl = d_pulse_rl * 2*M_PI /(encoderPulseResolution*dt) ;
 
-    double wr_raw = wr;
-    double wl_raw = wl;
+        double wr_raw = wr;
+        double wl_raw = wl;
 
-    //Apply filters
-    if( use_median_filter_ ){
-        median_wr.savePreviousInput( wr );
-        wr = median_wr.compute();     
-        median_wl.savePreviousInput( wl );
-        wl = median_wl.compute();	  
-    }
+        //Apply filters
+        if( use_median_filter_ ){
+            median_wr.savePreviousInput( wr );
+            wr = median_wr.compute();     
+            median_wl.savePreviousInput( wl );
+            wl = median_wl.compute();	  
+        }
 
-    if( use_low_pass_filter_ ){
-        lowpass_wr.savePreviousInput( wr );
-        wr = lowpass_wr.compute();     
-        lowpass_wl.savePreviousInput( wl );
-        wl = lowpass_wl.compute();	  
-    }
+        if( use_low_pass_filter_ ){
+            lowpass_wr.savePreviousInput( wr );
+            wr = lowpass_wr.compute();     
+            lowpass_wl.savePreviousInput( wl );
+            wl = lowpass_wl.compute();	  
+        }
 
-    //Compute wheel speed
-    double vrr = tireRadius*wr;//m/sec
-    double vrl = tireRadius*wl;//m/sec
+        //Compute wheel speed
+        double vrr = tireRadius*wr;//m/sec
+        double vrl = tireRadius*wl;//m/sec
 
-    double vrr_raw = tireRadius*wr_raw;//m/sec
-    double vrl_raw = tireRadius*wl_raw;//m/sec
-  
-    double v = clipValue((vrr + vrl)*0.5, 0.0, 60.0/3.6);
-    double w = (-vrl + vrr)*0.5/(0.5*tireDistance);
+        double vrr_raw = tireRadius*wr_raw;//m/sec
+        double vrl_raw = tireRadius*wl_raw;//m/sec
+    
+        double v = clipValue((vrr + vrl)*0.5, 0.0, 60.0/3.6);
+        double w = (-vrl + vrr)*0.5/(0.5*tireDistance);
 
-    double v_raw = (vrr_raw + vrl_raw)*0.5;
-    double w_raw = (-vrl_raw + vrr_raw)*0.5/(0.5*tireDistance);
+        double v_raw = (vrr_raw + vrl_raw)*0.5;
+        double w_raw = (-vrl_raw + vrr_raw)*0.5/(0.5*tireDistance);
 
-    //Pack the calculated values into the messages
-    odom_twist_msg_.header.stamp = ros_clock_->now();
-    //odom_twist_msg.header.frame_id = "/base_link";
-    odom_twist_msg_.twist.linear.x = v;
-    odom_twist_msg_.twist.linear.y = 0.0;
-    odom_twist_msg_.twist.linear.z = 0.0;
-    odom_twist_msg_.twist.angular.x = 0.0;
-    odom_twist_msg_.twist.angular.y = 0.0;
-    odom_twist_msg_.twist.angular.z = w;
+        //Pack the calculated values into the messages
+        odom_twist_msg_.header.stamp = ros_clock_->now();
+        //odom_twist_msg.header.frame_id = "/base_link";
+        odom_twist_msg_.twist.linear.x = v;
+        odom_twist_msg_.twist.linear.y = 0.0;
+        odom_twist_msg_.twist.linear.z = 0.0;
+        odom_twist_msg_.twist.angular.x = 0.0;
+        odom_twist_msg_.twist.angular.y = 0.0;
+        odom_twist_msg_.twist.angular.z = w;
 
-    //Pack the velocity into the control packet also
-    //coms_control_packet_msg.pc_speed_mps = v;
-    coms_control_packet_msg_.pc_yawrate = w;
-    coms_control_packet_msg_.pc_speedr_mps = vrr;
-    coms_control_packet_msg_.pc_speedl_mps = vrl;
+        //Pack the velocity into the control packet also
+        //coms_control_packet_msg.pc_speed_mps = v;
+        coms_control_packet_msg_.pc_yawrate = w;
+        coms_control_packet_msg_.pc_speedr_mps = vrr;
+        coms_control_packet_msg_.pc_speedl_mps = vrl;
 
-	previous_coms_sensor_packet_msg_ = coms_sensor_packet_now;
+        previous_coms_sensor_packet_msg_ = coms_sensor_packet_now;
 	    
     }
 }
