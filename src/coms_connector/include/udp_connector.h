@@ -37,11 +37,13 @@ public:
         close(socket_var);
     };
     void run();
+    int socket_var;
+    struct sockaddr_in sock_addr;
     
 protected:       
     int port;
-    int socket_var;
-    struct sockaddr_in sock_addr;
+    // int socket_var;
+    // struct sockaddr_in sock_addr;
     struct timeval tv;
     
     void init(){

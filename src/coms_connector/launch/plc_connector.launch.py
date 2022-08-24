@@ -33,7 +33,7 @@ def launch_setup(context, *args, **kwargs):
         package=pkg, 
         namespace = '',
         executable = 'plc_receiver',
-        name=AnonName("plc_receiver"),
+        name="plc_receiver",
         output = "screen",
         # remappings=,
         parameters=[load_composable_node_param("coms_connector_path")]
@@ -43,7 +43,7 @@ def launch_setup(context, *args, **kwargs):
         package=pkg, 
         namespace = '',
         executable = 'plc_sender',
-        name=AnonName("plc_sender"),
+        name="plc_sender",
         output = "screen",
         # remappings=,
         parameters=[load_composable_node_param("coms_connector_path")]

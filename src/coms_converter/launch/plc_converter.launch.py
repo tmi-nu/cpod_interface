@@ -32,7 +32,7 @@ def launch_setup(context, *args, **kwargs):
         package=pkg, 
         namespace = '',
         executable = 'plc_converter',
-        name=AnonName("plc_converter"),
+        name='plc_converter',
         output = "screen",
         # remappings=,
         parameters=[load_composable_node_param("coms_converter_path")]

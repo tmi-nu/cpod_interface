@@ -11,20 +11,20 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
     use_low_pass_filter_ = false;
     use_median_filter_ = false;
 
-    declare_parameter("direct_control_flag", false);
-    declare_parameter("use_low_pass_filter", true);
-    declare_parameter("use_median_filte;r", true);
-    declare_parameter("lowpass_filter_cutoff_frequency_wr", 50);
-    declare_parameter("lowpass_filter_cutoff_frequency_wl", 50);
-    declare_parameter("lowpass_filter_sampling_frequency_wr", 100);
-    declare_parameter("lowpass_filter_sampling_frequency_wl", 100);
-    declare_parameter("lowpass_filter_size_wr", 20);
-    declare_parameter("lowpass_filter_size_wl", 20);
-    declare_parameter("median_filter_size_wr", 5);
-    declare_parameter("median_filter_size_wl", 5);
-    declare_parameter("tire_radius", 1);
-    declare_parameter("tire_distance", 1);
-    declare_parameter("encoder_pulse_resolution", 1);
+    coms_direct_control_flag_ =  declare_parameter("direct_control_flag", false);
+    use_low_pass_filter_ = declare_parameter("use_low_pass_filter", true);
+    use_median_filter_ =  declare_parameter("use_median_filte;r", true);
+    lowpass_filter_cutoff_frequency_wr = declare_parameter("lowpass_filter_cutoff_frequency_wr", 50);
+    lowpass_filter_cutoff_frequency_wl =  declare_parameter("lowpass_filter_cutoff_frequency_wl", 50);
+    lowpass_filter_sampling_frequency_wr = declare_parameter("lowpass_filter_sampling_frequency_wr", 100);
+    lowpass_filter_sampling_frequency_wl = declare_parameter("lowpass_filter_sampling_frequency_wl", 100);
+    lowpass_filter_size_wr = declare_parameter("lowpass_filter_size_wr", 20);
+    lowpass_filter_size_wl = declare_parameter("lowpass_filter_size_wl", 20);
+    median_filter_size_wr = declare_parameter("median_filter_size_wr", 5);
+    median_filter_size_wl = declare_parameter("median_filter_size_wl", 5);
+    tire_radius = declare_parameter("tire_radius", 1);
+    tire_distance = declare_parameter("tire_distance", 1);
+    encoder_pulse_resolution = declare_parameter("encoder_pulse_resolution", 1);
 
     coms_sensor_packet_sub_ = this->create_subscription<coms_msgs::msg::ComsSensorPacket>
     (
@@ -32,46 +32,46 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
       std::bind(&PlcConverter::comsSensorPacketCallback, this, _1)
     );
     
-    // twist_cmd_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>
-    // (
-    //     twist_cmd_topic, 1, std::bind(&PlcConverter::twistCmdCallback, this,_1)
-    // );
-    // curr_twist_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>
-    // (
-    //     curr_twist_topic, 1, std::bind(&PlcConverter::currTwistCallback, this, _1)
-    // );
-    // accel_cmd_sub_ = this->create_subscription<autoware_msgs::msg::AccelCmd>
-    // (
-    //     accel_cmd_topic, 1, std::bind(&PlcConverter::accelCmdCallback, this, _1)
-    // );
-    // steer_cmd_sub_ = this->create_subscription<autoware_msgs::msg::SteerCmd>
-    // (
-    //     steer_cmd_topic, 1, std::bind(&PlcConverter::steerCmdCallback, this, _1)
-    // );
-    // brake_cmd_sub_ = this->create_subscription<autoware_msgs::msg::BrakeCmd>
-    // (
-    //     brake_cmd_topic, 1, std::bind(&PlcConverter::brakeCmdCallback, this, _1)
-    // );
-    // lamp_cmd_sub_ = this->create_subscription<autoware_msgs::msg::LampCmd>
-    // (
-    //     lamp_cmd_topic, 1, std::bind(&PlcConverter::lampCmdCallback, this, _1)
-    // );
-    // indicator_cmd_sub_ = this->create_subscription<autoware_msgs::msg::IndicatorCmd>
-    // (
-    //     indicator_cmd_topic, 1, std::bind(&PlcConverter::indicatorCmdCallback, this, _1)
-    // );
-    // gear_cmd_sub_ = this->create_subscription<tablet_socket_msgs::msg::GearCmd>
-    // (
-    //     gear_cmd_topic, 1, std::bind(&PlcConverter::gearCmdCallback, this, _1)
-    // );
-    // mode_cmd_sub_ = this->create_subscription<tablet_socket_msgs::msg::ModeCmd>
-    // (
-    //     mode_cmd_topic, 1, std::bind(&PlcConverter::modeCmdCallback, this, _1)
-    // );
-    // lidar_vel_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>
-    // (
-    //     lidar_vel_topic, 1, std::bind(&PlcConverter::LidarVelCallback, this, _1)
-    // );
+    twist_cmd_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>
+    (
+        "/twist_cmd", 1, std::bind(&PlcConverter::twistCmdCallback, this,_1)
+    );
+    curr_twist_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>
+    (
+        "/curr_twist", 1, std::bind(&PlcConverter::currTwistCallback, this, _1)
+    );
+    accel_cmd_sub_ = this->create_subscription<autoware_msgs::msg::AccelCmd>
+    (
+        "/accel_cmd", 1, std::bind(&PlcConverter::accelCmdCallback, this, _1)
+    );
+    steer_cmd_sub_ = this->create_subscription<autoware_msgs::msg::SteerCmd>
+    (
+        "/steer_cmd", 1, std::bind(&PlcConverter::steerCmdCallback, this, _1)
+    );
+    brake_cmd_sub_ = this->create_subscription<autoware_msgs::msg::BrakeCmd>
+    (
+        "/brake_cmd", 1, std::bind(&PlcConverter::brakeCmdCallback, this, _1)
+    );
+    lamp_cmd_sub_ = this->create_subscription<autoware_msgs::msg::LampCmd>
+    (
+        "/lamp_cmd", 1, std::bind(&PlcConverter::lampCmdCallback, this, _1)
+    );
+    indicator_cmd_sub_ = this->create_subscription<autoware_msgs::msg::IndicatorCmd>
+    (
+        "/indicator_cmd", 1, std::bind(&PlcConverter::indicatorCmdCallback, this, _1)
+    );
+    gear_cmd_sub_ = this->create_subscription<tablet_socket_msgs::msg::GearCmd>
+    (
+        "/gear_cmd", 1, std::bind(&PlcConverter::gearCmdCallback, this, _1)
+    );
+    mode_cmd_sub_ = this->create_subscription<tablet_socket_msgs::msg::ModeCmd>
+    (
+        "/mode_cmd", 1, std::bind(&PlcConverter::modeCmdCallback, this, _1)
+    );
+    lidar_vel_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>
+    (
+        "/estimate_twist", 1, std::bind(&PlcConverter::LidarVelCallback, this, _1)
+    );
 
     odom_twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("/odom_twist", 1);
     curr_pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("/curr_pose", 1);
