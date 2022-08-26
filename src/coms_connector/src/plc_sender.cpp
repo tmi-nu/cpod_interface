@@ -1,4 +1,4 @@
-#include <plc_connector.h>
+#include <coms_connector/plc_connector.h>
 
 namespace Udp_ns{
     
@@ -24,7 +24,7 @@ PlcSender::~PlcSender(){
     sender_->~UdpSender();
 }
     
-void PlcSender::comsControlPacketCallBack(const coms_msgs::msg::ComsControlPacket& msg)
+void PlcSender::comsControlPacketCallBack(const coms_msgs::msg::ComsControlPacket::SharedPtr msg)
 {
     this->coms_control_packet_msg_ = msg;
     int packet_length = sizeof(msg);

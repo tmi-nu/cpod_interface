@@ -1,4 +1,4 @@
-#include <plc_connector.h>
+#include <coms_connector/plc_connector.h>
 
 int main(int argc, char** argv){
     // private_nh.param<std::string>("destination", destination, "192.168.13.52");

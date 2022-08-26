@@ -21,9 +21,9 @@ class PlcSender : public rclcpp::Node{
 
     private:
         std::shared_ptr<UdpSender> sender_;
-        coms_msgs::msg::ComsControlPacket coms_control_packet_msg_;
+        coms_msgs::msg::ComsControlPacket::SharedPtr coms_control_packet_msg_;
         rclcpp::Subscription<coms_msgs::msg::ComsControlPacket>::SharedPtr coms_control_packet_sub_;
-        void comsControlPacketCallBack(const coms_msgs::msg::ComsControlPacket& msg);
+        void comsControlPacketCallBack(const coms_msgs::msg::ComsControlPacket::SharedPtr msg);
         // void comsControlPacketSend(const coms_msgs::msg::ComsControlPacket& msg);
 };
 
@@ -36,7 +36,7 @@ class PlcReceiver : public rclcpp::Node{
     private:
         std::shared_ptr<UdpReceiver> receiver_;
         coms_msgs::msg::ComsSensorPacket coms_sensor_packet_msg_;
-        rclcpp::Publisher<coms_msgs::msg::ComsSensorPacket> ::SharedPtr coms_sensor_packet_pub_;
+        rclcpp::Publisher<coms_msgs::msg::ComsSensorPacket>::SharedPtr coms_sensor_packet_pub_;
         rclcpp::TimerBase::SharedPtr timer_;
         void comsSensorPacketCallBack();
 

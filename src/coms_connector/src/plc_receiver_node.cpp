@@ -1,6 +1,4 @@
-#include <plc_connector.h>
-
-
+#include <coms_connector/plc_connector.h>
 
 int main(int argc, char** argv){
     rclcpp::init(argc, argv);

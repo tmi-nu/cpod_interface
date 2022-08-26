@@ -11,6 +11,7 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
     use_low_pass_filter_ = false;
     use_median_filter_ = false;
 
+    /* set parameters */
     coms_direct_control_flag_ =  declare_parameter("direct_control_flag", false);
     use_low_pass_filter_ = declare_parameter("use_low_pass_filter", true);
     use_median_filter_ =  declare_parameter("use_median_filte;r", true);
@@ -26,6 +27,7 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
     tire_distance = declare_parameter("tire_distance", 1);
     encoder_pulse_resolution = declare_parameter("encoder_pulse_resolution", 1);
 
+    // subscribers
     coms_sensor_packet_sub_ = this->create_subscription<coms_msgs::msg::ComsSensorPacket>
     (
       "/plc_sensor_packet", 1,
@@ -73,6 +75,7 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
         "/estimate_twist", 1, std::bind(&PlcConverter::LidarVelCallback, this, _1)
     );
 
+    // publishers
     odom_twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("/odom_twist", 1);
     curr_pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("/curr_pose", 1);
     coms_control_packet_pub_ = this->create_publisher<coms_msgs::msg::ComsControlPacket>("/plc_control_packet", 1);
@@ -89,6 +92,7 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
         lowpass_wl.setSize(lowpass_filter_size_wl);
     }
 
+    // setup timer
     ros_clock_ = std::make_shared<rclcpp::Clock>(rcl_clock_type_t::RCL_ROS_TIME);
     rclcpp::Time now = ros_clock_->now();
     previous_time_ = now;
@@ -110,23 +114,23 @@ void PlcConverter::publishMsgs(){
     coms_control_packet_pub_->publish(coms_control_packet_msg_);
 }
     
-void PlcConverter::comsSensorPacketCallback(const coms_msgs::msg::ComsSensorPacket& msg){
+void PlcConverter::comsSensorPacketCallback(const coms_msgs::msg::ComsSensorPacket::SharedPtr msg){
     coms_sensor_packet_msg_ = msg;
     coms_sensor_packet_updated_time_ = ros_clock_->now();
 
     computeEncoderSpeed(encoder_pulse_resolution, tire_radius, tire_distance, use_low_pass_filter_, use_median_filter_);
 }
 
-void PlcConverter::twistCmdCallback(const geometry_msgs::msg::TwistStamped& msg){
+void PlcConverter::twistCmdCallback(const geometry_msgs::msg::TwistStamped::SharedPtr msg){
     if(!coms_direct_control_flag_){
-        coms_control_packet_msg_.acc_vel_ref = msg.twist.linear.x;
+        coms_control_packet_msg_.acc_vel_ref = msg->twist.linear.x;
     
         // Yaw rate -> steer angle (tire angle)
         // Put the value only when the velocity is not 0.
         // Do not set any value on tir_ang_ref when the velocity is 0 and just keep the previous value.
-        if(msg.twist.linear.x > 0.1){
+        if(msg->twist.linear.x > 0.1){
             float tmp;
-            tmp = COMS_WHEEL_BASE * msg.twist.angular.z / msg.twist.linear.x;
+            tmp = COMS_WHEEL_BASE * msg->twist.angular.z / msg->twist.linear.x;
             tmp = asin(tmp);
             tmp = clipValue(tmp, static_cast<float>(-60.0f/180.0f*M_PI), static_cast<float>(60.0f/180.0f*M_PI));
 
@@ -135,45 +139,45 @@ void PlcConverter::twistCmdCallback(const geometry_msgs::msg::TwistStamped& msg)
     }
 }
 
-void PlcConverter::currTwistCallback(const geometry_msgs::msg::TwistStamped& msg){
+void PlcConverter::currTwistCallback(const geometry_msgs::msg::TwistStamped::SharedPtr msg){
     curr_twist_msg_ = msg;
 }
   
-void PlcConverter::accelCmdCallback(const autoware_msgs::msg::AccelCmd& msg){
+void PlcConverter::accelCmdCallback(const autoware_msgs::msg::AccelCmd::SharedPtr msg){
     if(coms_direct_control_flag_){
-	    int tmp = clipValue((int)msg.accel,0,20);
+	    int tmp = clipValue((int)msg->accel,0,20);
 	    coms_control_packet_msg_.acc_vel_ref = (float)tmp/3.6f; 
     }
 }
 
-void PlcConverter::steerCmdCallback(const autoware_msgs::msg::SteerCmd& msg){
+void PlcConverter::steerCmdCallback(const autoware_msgs::msg::SteerCmd::SharedPtr msg){
     if(coms_direct_control_flag_){
-        float tmp = clipValue((float)msg.steer/17.5f, -35.0f, 35.0f); //steering wheel angle -> tire angle
+        float tmp = clipValue((float)msg->steer/17.5f, -35.0f, 35.0f); //steering wheel angle -> tire angle
 	    coms_control_packet_msg_.tir_ang_ref = (float)tmp*M_PI/180.0f; //degree -> radian
     }
 }
 
-void PlcConverter::brakeCmdCallback(const autoware_msgs::msg::BrakeCmd& msg){
+void PlcConverter::brakeCmdCallback(const autoware_msgs::msg::BrakeCmd::SharedPtr msg){
     if(coms_direct_control_flag_){
-	    int tmp = clipValue((int)msg.brake,0,100);
+	    int tmp = clipValue((int)msg->brake,0,100);
 	    coms_control_packet_msg_.brk_pos_ref = tmp;
     }
 }
 
-void PlcConverter::lampCmdCallback(const autoware_msgs::msg::LampCmd& msg){
-    coms_control_packet_msg_.acc_cmode = msg.l?2:0; //int32
-	coms_control_packet_msg_.brk_cmode = msg.l?3:0;
+void PlcConverter::lampCmdCallback(const autoware_msgs::msg::LampCmd::SharedPtr msg){
+    coms_control_packet_msg_.acc_cmode = msg->l?2:0; //int32
+	coms_control_packet_msg_.brk_cmode = msg->l?3:0;
 	    
-    coms_control_packet_msg_.tir_cmode = msg.r?3:0; //int32
+    coms_control_packet_msg_.tir_cmode = msg->r?3:0; //int32
 }
 
-void PlcConverter::indicatorCmdCallback(const autoware_msgs::msg::IndicatorCmd& msg){
-    coms_control_packet_msg_.winker_l = msg.l; //int32
-    coms_control_packet_msg_.winker_r = msg.r; //int32
+void PlcConverter::indicatorCmdCallback(const autoware_msgs::msg::IndicatorCmd::SharedPtr msg){
+    coms_control_packet_msg_.winker_l = msg->l; //int32
+    coms_control_packet_msg_.winker_r = msg->r; //int32
 }
     
-void PlcConverter::gearCmdCallback(const tablet_socket_msgs::msg::GearCmd& msg){
-    int tmp = msg.gear; //int32
+void PlcConverter::gearCmdCallback(const tablet_socket_msgs::msg::GearCmd::SharedPtr msg){
+    int tmp = msg->gear; //int32
     switch(tmp){
         case 1: //D
             coms_control_packet_msg_.gear_d = 1;
@@ -194,12 +198,12 @@ void PlcConverter::gearCmdCallback(const tablet_socket_msgs::msg::GearCmd& msg){
     }
 }    
 
-void PlcConverter::modeCmdCallback(const tablet_socket_msgs::msg::ModeCmd& msg){
-    coms_control_packet_msg_.auto_control = msg.mode; //int32
+void PlcConverter::modeCmdCallback(const tablet_socket_msgs::msg::ModeCmd::SharedPtr msg){
+    coms_control_packet_msg_.auto_control = msg->mode; //int32
 }
 
-void PlcConverter::LidarVelCallback(const geometry_msgs::msg::TwistStamped& msg){
-	    coms_control_packet_msg_.pc_speed_mps = msg.twist.linear.x;// lidar_vel
+void PlcConverter::LidarVelCallback(const geometry_msgs::msg::TwistStamped::SharedPtr msg){
+	    coms_control_packet_msg_.pc_speed_mps = msg->twist.linear.x;// lidar_vel
 }
 
 double PlcConverter::clipValue(double input, double min, double max){
@@ -230,7 +234,7 @@ void PlcConverter::computeEncoderSpeed( double encoderPulseResolution, double ti
     //Pool sensor
     coms_msgs::msg::ComsSensorPacket coms_sensor_packet_now;
 	    
-    coms_sensor_packet_now = coms_sensor_packet_msg_;
+    coms_sensor_packet_now = *coms_sensor_packet_msg_;
  	    
     rclcpp::Time now = coms_sensor_packet_updated_time_;
   
@@ -295,7 +299,7 @@ void PlcConverter::computeEncoderSpeed( double encoderPulseResolution, double ti
 
         //Pack the calculated values into the messages
         odom_twist_msg_.header.stamp = ros_clock_->now();
-        //odom_twist_msg.header.frame_id = "/base_link";
+        //odom_twist_msg->header.frame_id = "/base_link";
         odom_twist_msg_.twist.linear.x = v;
         odom_twist_msg_.twist.linear.y = 0.0;
         odom_twist_msg_.twist.linear.z = 0.0;
@@ -304,7 +308,7 @@ void PlcConverter::computeEncoderSpeed( double encoderPulseResolution, double ti
         odom_twist_msg_.twist.angular.z = w;
 
         //Pack the velocity into the control packet also
-        //coms_control_packet_msg.pc_speed_mps = v;
+        //coms_control_packet_msg->pc_speed_mps = v;
         coms_control_packet_msg_.pc_yawrate = w;
         coms_control_packet_msg_.pc_speedr_mps = vrr;
         coms_control_packet_msg_.pc_speedl_mps = vrl;
