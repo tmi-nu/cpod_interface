@@ -9,7 +9,7 @@ PlcSender::PlcSender(std::string name)
     : Node(name)
 {
     const std::string destination = declare_parameter("destination", "192.168.0.20");
-    const int port =  declare_parameter("port", 5002);
+    const int port =  declare_parameter("port_send", 5002);
     this->sender_ = std::make_shared<UdpSender>(destination, port);
     this->coms_control_packet_sub_ = this->create_subscription<coms_msgs::msg::ComsControlPacket>
     (

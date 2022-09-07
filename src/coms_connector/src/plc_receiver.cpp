@@ -7,7 +7,7 @@ using namespace std::chrono_literals;
 PlcReceiver::PlcReceiver(std::string name)
     : rclcpp::Node(name)
 {
-    const int port = declare_parameter("port", 5002);
+    const int port = declare_parameter("port_receive", 5002);
     receiver_ = std::make_shared<UdpReceiver>(port);
     coms_sensor_packet_pub_ = this->create_publisher<coms_msgs::msg::ComsSensorPacket>
     (
