@@ -40,6 +40,8 @@ class PlcReceiver : public rclcpp::Node{
         rclcpp::TimerBase::SharedPtr timer_;
         void comsSensorPacketCallBack();
 
+        std::ofstream ofs;    
+
         std::thread th_;
         std::mutex mutex_;
         bool work_;

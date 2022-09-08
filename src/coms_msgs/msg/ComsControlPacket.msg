@@ -1,12 +1,12 @@
-int16 auto_control
-int16 control_mode
-int16 acc_cmode
-int16 acc_pos_ref
-float32 acc_vel_ref
-int16 acc_frc_ref
-int16 brk_cmode
-int16 brk_pos_ref
-float32 brk_vel_ref
+int16 auto_control # 0
+int16 control_mode # 1
+int16 acc_cmode # 2
+int16 acc_pos_ref # 3
+float32 acc_vel_ref # 4
+int16 acc_frc_ref # 5
+int16 brk_cmode # 6
+int16 brk_pos_ref # 7
+float32 brk_vel_ref # some thing wrong-> error ros2 topic echo
 int16 brk_frc_ref
 int16 tir_cmode
 float32 tir_ang_ref

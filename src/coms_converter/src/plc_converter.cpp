@@ -26,6 +26,7 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
     tire_radius = declare_parameter("tire_radius", 1);
     tire_distance = declare_parameter("tire_distance", 1);
     encoder_pulse_resolution = declare_parameter("encoder_pulse_resolution", 1);
+    coms_control_packet_msg_.auto_control = declare_parameter("auto_control", 1);
 
     // subscribers
     coms_sensor_packet_sub_ = this->create_subscription<coms_msgs::msg::ComsSensorPacket>
@@ -74,11 +75,10 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
     (
         "/estimate_twist", 1, std::bind(&PlcConverter::LidarVelCallback, this, _1)
     );
-
     // publishers
     odom_twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>("/odom_twist", 1);
     curr_pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("/curr_pose", 1);
-    coms_control_packet_pub_ = this->create_publisher<coms_msgs::msg::ComsControlPacket>("/plc_control_packet", 1);
+    coms_control_packet_pub_ = this->create_publisher<coms_msgs::msg::ComsControlPacket>("/plc_control_packet", 100);
 
     //Setup filters
     if(use_median_filter_){
@@ -106,17 +106,27 @@ PlcConverter::PlcConverter(std::string name) : rclcpp::Node(name)
 
     
 void PlcConverter::publishMsgs(){
+    RCLCPP_INFO(this->get_logger(), "publishMsgs is called");
     if (coms_control_packet_msg_.wd_count > 10000) coms_control_packet_msg_.wd_count = 0;
     else coms_control_packet_msg_.wd_count++;
-
+    coms_control_packet_msg_.brk_vel_ref = 1.0f;
+    coms_control_packet_msg_.brk_frc_ref = 1.0f;
     odom_twist_pub_->publish(odom_twist_msg_);
     curr_pose_pub_->publish(curr_pose_msg_);
+    RCLCPP_INFO(this->get_logger(), "publish: %d, %d", coms_control_packet_msg_.gear_d, coms_control_packet_msg_.gear_r);
     coms_control_packet_pub_->publish(coms_control_packet_msg_);
 }
-    
+
+void PlcConverter::testControlPacketCallback(const coms_msgs::msg::ComsControlPacket::SharedPtr msg) 
+{
+    coms_msgs::msg::ComsControlPacket mm = *msg;
+    coms_control_packet_pub_->publish(mm);
+}    
+
 void PlcConverter::comsSensorPacketCallback(const coms_msgs::msg::ComsSensorPacket::SharedPtr msg){
     coms_sensor_packet_msg_ = msg;
     coms_sensor_packet_updated_time_ = ros_clock_->now();
+    RCLCPP_INFO(this->get_logger(), "brake_pot_vol: %d", msg->brake_pot_vol);
 
     computeEncoderSpeed(encoder_pulse_resolution, tire_radius, tire_distance, use_low_pass_filter_, use_median_filter_);
 }
@@ -177,11 +187,14 @@ void PlcConverter::indicatorCmdCallback(const autoware_msgs::msg::IndicatorCmd::
 }
     
 void PlcConverter::gearCmdCallback(const tablet_socket_msgs::msg::GearCmd::SharedPtr msg){
-    int tmp = msg->gear; //int32
+    RCLCPP_INFO(this->get_logger(), "gearCmdCallback is called: %d", msg->gear);
+    int16_t tmp = static_cast<int16_t>(msg->gear); //int32
     switch(tmp){
         case 1: //D
-            coms_control_packet_msg_.gear_d = 1;
-            coms_control_packet_msg_.gear_r = 0;
+            RCLCPP_INFO(this->get_logger(), "Gear D");
+            coms_control_packet_msg_.gear_d = static_cast<int16_t>(1);
+            coms_control_packet_msg_.gear_r = static_cast<int16_t>(0);
+            RCLCPP_INFO(this->get_logger(), "coms_control_packet_msg_: %d, %d", coms_control_packet_msg_.gear_d, coms_control_packet_msg_.gear_r);
             break;
         case 2: //R
             coms_control_packet_msg_.gear_d = 0;
@@ -199,6 +212,7 @@ void PlcConverter::gearCmdCallback(const tablet_socket_msgs::msg::GearCmd::Share
 }    
 
 void PlcConverter::modeCmdCallback(const tablet_socket_msgs::msg::ModeCmd::SharedPtr msg){
+    RCLCPP_INFO(this->get_logger(), "modeCmdCallback is called: %d", msg->mode);
     coms_control_packet_msg_.auto_control = msg->mode; //int32
 }
 
@@ -308,7 +322,7 @@ void PlcConverter::computeEncoderSpeed( double encoderPulseResolution, double ti
         odom_twist_msg_.twist.angular.z = w;
 
         //Pack the velocity into the control packet also
-        //coms_control_packet_msg->pc_speed_mps = v;
+        coms_control_packet_msg_.pc_speed_mps = v;
         coms_control_packet_msg_.pc_yawrate = w;
         coms_control_packet_msg_.pc_speedr_mps = vrr;
         coms_control_packet_msg_.pc_speedl_mps = vrl;

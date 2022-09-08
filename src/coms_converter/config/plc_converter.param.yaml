@@ -1,5 +1,6 @@
 /**:
   ros__parameters: 
+    autocontrol: true
     direct_control_flag: false
     use_low_pass_filter: true
     use_median_filter: true

@@ -178,6 +178,7 @@ private:
     void gearCmdCallback(const tablet_socket_msgs::msg::GearCmd::SharedPtr msg);
     void modeCmdCallback(const tablet_socket_msgs::msg::ModeCmd::SharedPtr msg);
 	void LidarVelCallback(const geometry_msgs::msg::TwistStamped::SharedPtr msg);//lidar_vel
+    void testControlPacketCallback(const coms_msgs::msg::ComsControlPacket::SharedPtr msg);
 };
 
 }
