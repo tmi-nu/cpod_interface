@@ -74,3 +74,13 @@ See `src/coms_converter/config/plc_connector.param.yaml`
 |`tire_radius`|1| Radius of the wheel|
 |`tire_distance`|1| Distance between the right wheel and left one|
 |`encoder_pulse_resolution`|1| Number of pulse during wheel rotates $2\pi$|
+
+# debug 
+1. ROS1 install してオリジナルを実行
+
+2. udp のダンプをする　
+* ワイヤーシャーく
+* イーサーダンプ
+* TCPダンプ　
+
+3. 送り元のポート番号

@@ -39,6 +39,7 @@ public:
     void run();
     int socket_var;
     struct sockaddr_in sock_addr;
+    struct sockaddr_in sock_src_addr;
     
 protected:       
     int port;
@@ -60,7 +61,8 @@ protected:
 
 class UdpSender : public UdpConnector{
 public:
-    UdpSender(std::string _destination, unsigned short _port):UdpConnector(_port){
+    UdpSender(std::string _destination, unsigned short _port, unsigned short _src_port) 
+    : UdpConnector(_port), src_port_(_src_port){
         destination = _destination;
         
         init();
@@ -69,7 +71,9 @@ public:
         close(socket_var);
     };
     // void run();
-    
+protected:
+    int src_port_;
+
 private:
     void init(){
         //Setting for UDP
@@ -78,7 +82,17 @@ private:
         sock_addr.sin_port = htons(port);
         sock_addr.sin_family = AF_INET;
         
+        memset(&sock_src_addr, 0, sizeof(sock_src_addr));
+        sock_src_addr.sin_family = AF_INET;
+        sock_src_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        sock_src_addr.sin_port = htons(5001);
+        
         socket_var = socket(AF_INET, SOCK_DGRAM, 0);
+        if (bind(socket_var, (struct sockaddr *)&sock_src_addr, sizeof(sock_src_addr)) < 0) {
+            printf("bind src address error");
+            exit(1);
+        }
+        
         if(setsockopt(socket_var, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv,sizeof(struct timeval))) perror("Error in setsockopt()");
     };
 

@@ -109,8 +109,6 @@ void PlcConverter::publishMsgs(){
     RCLCPP_INFO(this->get_logger(), "publishMsgs is called");
     if (coms_control_packet_msg_.wd_count > 10000) coms_control_packet_msg_.wd_count = 0;
     else coms_control_packet_msg_.wd_count++;
-    coms_control_packet_msg_.brk_vel_ref = 1.0f;
-    coms_control_packet_msg_.brk_frc_ref = 1.0f;
     odom_twist_pub_->publish(odom_twist_msg_);
     curr_pose_pub_->publish(curr_pose_msg_);
     RCLCPP_INFO(this->get_logger(), "publish: %d, %d", coms_control_packet_msg_.gear_d, coms_control_packet_msg_.gear_r);
