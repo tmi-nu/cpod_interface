@@ -3,5 +3,5 @@
     destination: "192.168.0.10" # 192.168.0.10
     port_receive: 5001
     port_send: 5002
-    use_vel_upper_limit: true
-    vel_upper_limit: 2.7
+    use_vel_upper_limit: true # If true, velocity limit applied.
+    vel_upper_limit: 2.7 # [m/s]
