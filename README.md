@@ -1,6 +1,12 @@
 # cpod_interface
 Autoware.universe ROS2 C+Pod Interface 
 
+# Launch all nodes
+```
+source install/setup.bash
+ros2 launch launch/cpod_interface.launch.py
+```
+
 # coms_connector
 ## How to launch
 ```
