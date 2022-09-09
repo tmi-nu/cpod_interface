@@ -7,6 +7,13 @@ Autoware.universe ROS2 C+Pod Interface
 ros2 launch coms_connector plc_connector.launch.py 
 ```
 
+## Velocity limit
+```
+# If set to 'true', velocity upper limit is applied before sends command to PLC
+ros2 param set /plc_sender /use_vel_upper_limit true
+ros2 param set /plc_sender /vel_upper_limit "2.7" # [m/s]
+```
+
 ## Nodes
 * `plc_sender` : This node subscribes `/plc_control_packet` and sends control commands to plc.
 * `plc_receiver` : This node receives sensor data from plc and publish to `plc_sensor_packet`.
@@ -21,7 +28,10 @@ ros2 launch coms_connector plc_connector.launch.py
 ## Parameters
 See `src/coms_connector/config/plc_connector.param.yaml`
 * destination : ip address 
-* port : port number
+* port_receive : port number of PC
+* poer_send : port number of PLC
+* use_vel_upper_limit: whether use velocity upper limit
+* vel_upper_limit: velocity upper limit [m/s]
 
 # coms_converter
 ## How to launch
