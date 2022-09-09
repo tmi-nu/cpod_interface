@@ -20,6 +20,9 @@ class PlcSender : public rclcpp::Node{
         // void run();
 
     private:
+        bool use_vel_upper_limit_ = true; 
+        float vel_upper_limit_ = 10.0f/3.6f; // 10 km/h
+
         std::shared_ptr<UdpSender> sender_;
         coms_msgs::msg::ComsControlPacket::SharedPtr coms_control_packet_msg_;
         rclcpp::Subscription<coms_msgs::msg::ComsControlPacket>::SharedPtr coms_control_packet_sub_;
